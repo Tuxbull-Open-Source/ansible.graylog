@@ -1,0 +1,3 @@
+---
+# Nginx TLS proxying is intentionally outside the Graylog 7.2 Rocky 10 lab
+# scope. Use a dedicated supported reverse-proxy role in production.

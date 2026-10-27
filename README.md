@@ -1,29 +1,30 @@
-# graylog
-This is my personal role to setup a Graylog single node for testing and debugging.
-It is not a starting pint for production env, but for evaluation.
+# Graylog single-node lab role
 
-Installation with ansible-galaxy:
-
-``` bash
-ansible-galaxy install joe-speedboat.graylog
-```
+Install Graylog 7.2, MongoDB 8.0, and Graylog Data Node on a single Rocky Linux
+10 host. Rocky 10 use is explicitly user-authorized for this lab role; consult
+Graylog's current compatibility matrix before production use.
 
 ## Requirements
-* Currently tested with Rocky Linux 9
-* Ansible 2.18 or higher is required for this Ansible Role
 
-* Operating System: Rocky Linux 9
-* OS Disk: min 50GB
-* CPU: min 6   
-* Memory: min 16GB   
+- Rocky Linux 10 lab host with at least 6 vCPU, 16 GiB RAM, and 50 GB disk.
+- A secret `graylog_admin_password` at least 12 characters long, supplied from
+  Ansible Vault or an approved secret manager.
 
+## Example
 
-Role Variables
---------------
-Variables are speaking or documented in defaults/main.yml   
+```yaml
+- hosts: graylog_lab
+  become: true
+  vars_files: [vault.yml]
+  roles:
+    - role: tuxbull.graylog
+      vars:
+        graylog_admin_password: "{{ vault_graylog_admin_password }}"
+```
 
+## Scope and limitations
 
-License
--------
-https://opensource.org/licenses/GPL-3.0    
-Copyright (c) Chris Ruettimann <chris@bitbull.ch>
+The role creates a local MongoDB/Data Node/Graylog deployment and waits for the
+local Graylog API. It deliberately does not configure TLS, Nginx, firewalld
+exposure, mail, external inputs, dashboards, backup, or HA. Treat it as an
+explicitly authorized lab setup, not a production reference architecture.

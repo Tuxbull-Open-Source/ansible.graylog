@@ -1,0 +1,12 @@
+---
+- name: Check existing Graylog installation
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Refuse unexpected existing Graylog installation
+  ansible.builtin.assert:
+    that:
+      - graylog_reconfigure | bool or 'graylog-server' not in ansible_facts.packages
+    fail_msg: >-
+      Set graylog_reconfigure to true only for an explicitly approved existing
+      installation.

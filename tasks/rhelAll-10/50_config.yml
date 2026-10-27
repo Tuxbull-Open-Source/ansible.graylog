@@ -1,0 +1,60 @@
+---
+- name: Configure Graylog administrator password hash
+  ansible.builtin.lineinfile:
+    path: /etc/graylog/server/server.conf
+    regexp: '^root_password_sha2\s*='
+    line: "root_password_sha2 = {{ graylog_admin_password | hash('sha256') }}"
+  no_log: true
+  notify: Restart graylog-server
+
+- name: Create stable Graylog password secret
+  ansible.builtin.copy:
+    dest: /etc/graylog/password_secret
+    content: "{{ lookup('password', '/dev/null length=96 chars=ascii_letters,digits') }}\n"
+    owner: root
+    group: graylog
+    mode: '0640'
+    force: false
+  no_log: true
+
+- name: Read stable Graylog password secret
+  ansible.builtin.slurp:
+    src: /etc/graylog/password_secret
+  register: graylog_password_secret_file
+  no_log: true
+
+- name: Configure shared Graylog password secret
+  ansible.builtin.lineinfile:
+    path: "{{ item }}"
+    regexp: '^password_secret\s*='
+    line: "password_secret = {{ graylog_password_secret_file.content | b64decode | trim }}"
+  loop:
+    - /etc/graylog/server/server.conf
+    - /etc/graylog/datanode/datanode.conf
+  no_log: true
+  notify:
+    - Restart graylog-server
+    - Restart graylog-datanode
+
+- name: Configure Graylog server settings
+  ansible.builtin.lineinfile:
+    path: /etc/graylog/server/server.conf
+    regexp: "^{{ item.key }}\\s*="
+    line: "{{ item.key }} = {{ item.value }}"
+  loop:
+    - {key: 'mongodb_uri', value: "{{ graylog_mongodb_uri }}"}
+    - {key: 'http_bind_address', value: "{{ graylog_http_bind_address }}"}
+    - {key: 'http_publish_uri', value: "{{ graylog_http_publish_uri }}"}
+    - {key: 'root_email', value: "{{ graylog_root_email }}"}
+    - {key: 'root_timezone', value: "{{ graylog_root_timezone }}"}
+  notify: Restart graylog-server
+
+- name: Set system timezone
+  community.general.timezone:
+    name: "{{ graylog_root_timezone }}"
+
+- name: Enable Graylog server
+  ansible.builtin.systemd:
+    name: graylog-server
+    enabled: true
+    state: started

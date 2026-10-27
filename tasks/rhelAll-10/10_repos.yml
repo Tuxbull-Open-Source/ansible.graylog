@@ -1,0 +1,20 @@
+---
+- name: Install Graylog repository RPM
+  ansible.builtin.dnf:
+    name: "{{ graylog_repo_rpm }}"
+    state: present
+    disable_gpg_check: true
+
+- name: Configure MongoDB 8 repository for Rocky 10
+  ansible.builtin.copy:
+    dest: /etc/yum.repos.d/mongodb-org-8.0.repo
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      [mongodb-org-8.0]
+      name=MongoDB Repository
+      baseurl=https://repo.mongodb.org/yum/redhat/10/mongodb-org/{{ mongodb_version }}/x86_64/
+      gpgcheck=1
+      enabled=1
+      gpgkey=https://www.mongodb.org/static/pgp/server-{{ mongodb_version }}.asc

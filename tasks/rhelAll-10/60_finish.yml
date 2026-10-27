@@ -1,0 +1,13 @@
+---
+- name: Apply pending Graylog configuration changes
+  ansible.builtin.meta: flush_handlers
+
+- name: Wait for Graylog HTTP service
+  ansible.builtin.uri:
+    url: "http://{{ graylog_http_bind_address }}/"
+    status_code: 401
+    return_content: false
+  register: graylog_health
+  retries: 30
+  delay: 5
+  until: graylog_health.status == 401

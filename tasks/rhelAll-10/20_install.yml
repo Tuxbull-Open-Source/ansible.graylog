@@ -1,0 +1,28 @@
+---
+- name: Install Graylog 7.2 packages
+  ansible.builtin.dnf:
+    name: "{{ graylog_packages }}"
+    state: present
+
+- name: Configure MongoDB localhost bind
+  ansible.builtin.lineinfile:
+    path: /etc/mongod.conf
+    regexp: '^\s*bindIp:'
+    line: '  bindIp: 127.0.0.1'
+  notify: Restart mongod
+
+- name: Persist Graylog kernel map-count prerequisite
+  ansible.posix.sysctl:
+    name: vm.max_map_count
+    value: '262144'
+    state: present
+    reload: true
+
+- name: Enable MongoDB and Graylog Data Node
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - mongod
+    - graylog-datanode

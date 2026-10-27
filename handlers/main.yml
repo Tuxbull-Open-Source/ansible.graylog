@@ -1,21 +1,15 @@
 ---
-- name: restart graylog-server
-  ansible.builtin.service:
+- name: Restart graylog-server
+  ansible.builtin.systemd:
     name: graylog-server
     state: restarted
 
-- name: restart graylog-datanode
-  ansible.builtin.service:
+- name: Restart graylog-datanode
+  ansible.builtin.systemd:
     name: graylog-datanode
     state: restarted
 
-- name: restart mongodb
-  ansible.builtin.service:
+- name: Restart mongod
+  ansible.builtin.systemd:
     name: mongod
     state: restarted
-
-- name: restart nginx
-  ansible.builtin.service:
-    name: nginx
-    state: restarted
-...
